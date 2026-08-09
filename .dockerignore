@@ -3,6 +3,7 @@
 .env.*
 !.env.example
 env.cloudrun.yaml
+perintah-deploy.txt
 
 node_modules
 dist

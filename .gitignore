@@ -7,5 +7,6 @@ dist/
 
 # Dibangkitkan skrip deploy dari .env; berisi rahasia yang sama.
 env.cloudrun.yaml
-
+perintah-deploy.txt
+DEPLOY.md
 *.log

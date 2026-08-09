@@ -1,0 +1,21 @@
+# Berkas yang tidak ikut diunggah ke Cloud Build saat `gcloud run deploy --source .`
+#
+# Ditulis eksplisit, tidak mengandalkan .gitignore: kalau berkas ini tidak ada,
+# gcloud memakai aturan .gitignore, dan cukup satu perubahan di sana untuk
+# membuat .env ikut terunggah tanpa disadari.
+
+.env
+.env.*
+!.env.example
+env.cloudrun.yaml
+perintah-deploy.txt
+
+node_modules
+dist
+.git
+.gitignore
+*.log
+
+README.md
+DEPLOY.md
+deploy-cloudrun.ps1

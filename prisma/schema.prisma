@@ -1,0 +1,208 @@
+// Skema basis data situs Kelurahan Landasan Ulin Tengah.
+//
+// Tiga kelompok isi yang bisa diubah lewat panel admin:
+//   1. Berita   — artikel beserta blok isinya (JSON).
+//   2. Foto     — galeri kegiatan.
+//   3. Statistik— seluruh angka & teks pada halaman Data.
+//
+// Tabel statistik yang berupa daftar memakai kolom `urutan` agar susunan di
+// halaman publik ditentukan admin, bukan urutan penyisipan.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+// Supabase memberi dua alamat koneksi. `url` memakai connection pooler
+// (port 6543) yang cocok untuk aplikasi berjalan, sedangkan `directUrl`
+// memakai koneksi langsung (port 5432) yang dibutuhkan `prisma migrate` —
+// migrasi gagal bila dijalankan lewat pooler.
+//
+// Pada PostgreSQL biasa tanpa pooler, isi DIRECT_URL sama persis dengan
+// DATABASE_URL.
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+/* ------------------------------------------------------------------ Admin */
+
+model Admin {
+  id           String   @id @default(cuid())
+  username     String   @unique
+  passwordHash String
+  nama         String   @default("Administrator")
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@map("admin")
+}
+
+/* ----------------------------------------------------------------- Berita */
+
+model Berita {
+  id       String   @id @default(cuid())
+  slug     String   @unique
+  judul    String
+  kategori String
+  tanggal  DateTime @db.Date
+  lokasi   String
+  penulis  String
+  ringkas  String
+  /// Path foto utama, mis. `/uploads/xxx.jpg`. Kosong = pakai gambar bangkitan.
+  foto     String?
+  /// Tautan publikasi asli, bila beritanya menyadur dari sumber lain.
+  sumber   String?
+  /// Blok isi artikel: [{ t: 'p'|'h2'|'ul'|'quote', v: ..., by?: ... }]
+  isi      Json     @default("[]")
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([tanggal(sort: Desc)])
+  @@map("berita")
+}
+
+/* ----------------------------------------------------------------- Galeri */
+
+model Foto {
+  id      String   @id @default(cuid())
+  judul   String
+  /// Label pendek untuk kartu di beranda (maks. ±2 kata).
+  ringkas String
+  album   String
+  tanggal DateTime @db.Date
+  /// Path berkas gambar, mis. `/uploads/xxx.jpg`.
+  foto    String
+  sumber  String?
+  urutan  Int      @default(0)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([tanggal(sort: Desc)])
+  @@map("foto")
+}
+
+/* -------------------------------------------------------------- Statistik */
+
+/// Baris tunggal (id selalu 1). Menampung tabel Gambaran Umum, total resmi,
+/// serta tiga kartu ringkasan yang isinya berupa teks bebas.
+model GambaranUmum {
+  id Int @id @default(1)
+
+  penduduk       Int
+  kk             Int
+  pus            Int
+  ibuHamil       Int
+  balitaStunting Int
+  remaja         Int
+  lansia         Int
+
+  /// Total yang dipublikasikan sumber — sengaja dipisah dari jumlah baris
+  /// tabel per-RT karena keduanya memang berbeda di sumbernya.
+  totalResmiKk   Int
+  totalResmiJiwa Int
+
+  /// Kartu ringkasan bernilai teks bebas, mis. "1.818,00 ha".
+  luasWilayah    String
+  rtRw           String
+  jarakPusatKota String
+
+  updatedAt DateTime @updatedAt
+
+  @@map("gambaran_umum")
+}
+
+/// Baris tunggal (id selalu 1). Blok "Statistik Kampung" pada portal.
+model StatistikKampung {
+  id Int @id @default(1)
+
+  jiwa           Int
+  kk             Int
+  pus            Int
+  keluargaBalita Int
+  keluargaRemaja Int
+  keluargaLansia Int
+  remaja         Int
+
+  updatedAt DateTime @updatedAt
+
+  @@map("statistik_kampung")
+}
+
+model PendudukRt {
+  id     String @id @default(cuid())
+  rt     String
+  rw     String
+  kk     Int
+  jiwa   Int
+  urutan Int    @default(0)
+
+  @@map("penduduk_rt")
+}
+
+model Pendidikan {
+  id     String @id @default(cuid())
+  nama   String
+  l      Int
+  p      Int
+  urutan Int    @default(0)
+
+  @@map("pendidikan")
+}
+
+model KepesertaanKb {
+  id     String @id @default(cuid())
+  nama   String
+  jml    Int
+  /// Warna bar meter, mis. `var(--leaf-600)` atau `#4a8258`.
+  warna  String @default("var(--leaf-600)")
+  urutan Int    @default(0)
+
+  @@map("kepesertaan_kb")
+}
+
+model SaranaGrup {
+  id     String @id @default(cuid())
+  grup   String
+  /// Nama ikon dari komponen Icon di frontend, mis. `users`, `building`.
+  icon   String @default("layers")
+  urutan Int    @default(0)
+
+  items SaranaItem[]
+
+  @@map("sarana_grup")
+}
+
+model SaranaItem {
+  id     String @id @default(cuid())
+  nama   String
+  ket    String
+  urutan Int    @default(0)
+
+  grupId String
+  grup   SaranaGrup @relation(fields: [grupId], references: [id], onDelete: Cascade)
+
+  @@index([grupId])
+  @@map("sarana_item")
+}
+
+model Posyandu {
+  id      String @id @default(cuid())
+  nama    String
+  alamat  String
+  layanan String
+  urutan  Int    @default(0)
+
+  @@map("posyandu")
+}
+
+model Lembaga {
+  id     String @id @default(cuid())
+  nama   String
+  jml    Int
+  urutan Int    @default(0)
+
+  @@map("lembaga")
+}

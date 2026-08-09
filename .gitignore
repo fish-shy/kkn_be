@@ -1,0 +1,8 @@
+node_modules/
+dist/
+
+# Berisi kunci service_role Supabase — jangan pernah ikut masuk repo.
+.env
+.env.local
+
+*.log

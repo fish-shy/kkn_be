@@ -1,0 +1,13 @@
+# Jangan pernah ikut ke dalam image — berisi service role key Supabase.
+.env
+.env.*
+!.env.example
+env.cloudrun.yaml
+
+node_modules
+dist
+.git
+*.log
+README.md
+DEPLOY.md
+deploy-cloudrun.ps1

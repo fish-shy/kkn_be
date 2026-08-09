@@ -5,4 +5,7 @@ dist/
 .env
 .env.local
 
+# Dibangkitkan skrip deploy dari .env; berisi rahasia yang sama.
+env.cloudrun.yaml
+
 *.log

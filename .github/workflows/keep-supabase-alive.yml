@@ -2,20 +2,19 @@ name: Keep Supabase Alive
 
 on:
   schedule:
-    # Tiap hari 22:00 UTC (05:00 WITA). Harian, bukan 2x seminggu:
-    # jadwal GitHub Actions sering tertunda, dan batas jedanya 7 hari.
-    - cron: '0 22 * * *'
-  workflow_dispatch:
+    # Runs at midnight (UTC) every Monday and Thursday
+    - cron: '0 0 * * 1,4'
+  workflow_dispatch: # This allows you to run the script manually
 
 jobs:
   ping-database:
     runs-on: ubuntu-latest
     steps:
-      - name: Ping API kelurahan
+      - name: Send API Request to Supabase
         env:
-          API_URL: ${{ secrets.API_URL }}          # https://kkn-api-xxxx.a.run.app
-          CRON_SECRET: ${{ secrets.CRON_SECRET }}  # sama dengan backend/.env
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
         run: |
-          curl --fail-with-body -sS \
-            "${API_URL}/api/keepalive" \
-            -H "X-Cron-Secret: ${CRON_SECRET}"
+          curl --fail-with-body -sS -X GET "${SUPABASE_URL}/rest/v1/berita?select=id&limit=1" \
+          -H "apikey: ${SUPABASE_KEY}" \
+          -H "Authorization: Bearer ${SUPABASE_KEY}"
